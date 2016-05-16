@@ -12,7 +12,7 @@ Current neural MT methods rely on naïve word representations that make no use o
 -decoder
 - + attention
 -synthetic data? maybe spanish (without gender? + be able to add that back in
---find spanish analyzer DONE
+-find spanish analyzer DONE
 - processing/cleaning/tokenization
 - What to do about different beams for different types of generation
 - evaluation
