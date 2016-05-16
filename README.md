@@ -1,5 +1,5 @@
 # DeepDomers
-MTMA 2016 project using Tensor FLow
+MTMA 2016 project using Tensor Flow
 
 
 #End-to-end Morphology-aware Neural MT (Austin Matthews)
