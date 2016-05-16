@@ -8,11 +8,11 @@ Current neural MT methods rely on naïve word representations that make no use o
 
 
 #to-do's
--encoder
--decoder
+- encoder
+- decoder
 - + attention
--synthetic data? maybe spanish (without gender? + be able to add that back in
--find spanish analyzer DONE
+- synthetic data? maybe spanish (without gender? + be able to add that back in
+- find spanish analyzer DONE
 - processing/cleaning/tokenization
 - What to do about different beams for different types of generation
 - evaluation
