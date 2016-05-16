@@ -19,7 +19,7 @@ my $urlbase = "http://cartago.lllf.uam.es/grampal/grampal.cgi";
 while(my $row=<STDIN>) {
 
     chomp $row;
-    my $enc = uri_escape($row);
+    my $enc = uri_escape_utf8($row);
     
     #build POST-friendly CURL call
 
