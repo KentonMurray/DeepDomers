@@ -16,3 +16,4 @@ Current neural MT methods rely on naïve word representations that make no use o
 - processing/cleaning/tokenization
 - What to do about different beams for different types of generation
 - evaluation
+- morphemes --> surface form
