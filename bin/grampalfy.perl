@@ -5,7 +5,7 @@
 use strict;
 use utf8;
 use Time::HiRes qw(usleep);
-
+use URI::Escape;
 
 binmode(STDIN, ":utf8");
 binmode(STDOUT, ":utf8");
@@ -19,10 +19,11 @@ my $urlbase = "http://cartago.lllf.uam.es/grampal/grampal.cgi";
 while(my $row=<STDIN>) {
 
     chomp $row;
-
+    my $enc = uri_escape($row);
+    
     #build POST-friendly CURL call
 
-    my $result = `curl -s -d fs=xml2 -d m=xml -d texto="$row" $urlbase `;
+    my $result = `curl -s -d fs=xml2 -d m=xml -d texto="$enc" $urlbase `;
 
     print "$result\n";
     usleep(1000);
