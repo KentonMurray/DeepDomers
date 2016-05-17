@@ -10,7 +10,7 @@ import tensorflow as tf
 
 class NewSeq2SeqModel(object):
 
-  def __init__(self, source_vocab_size, target_vocab_size, buckets, size,
+  def __init__(self, source_vocab_size, target_vocab_size, size,
                num_layers, max_gradient_norm, batch_size, learning_rate,
                learning_rate_decay_factor, use_lstm=False,
                num_samples=512, forward_only=False):
@@ -18,7 +18,6 @@ class NewSeq2SeqModel(object):
 
     self.source_vocab_size = source_vocab_size
     self.target_vocab_size = target_vocab_size
-    self.buckets = buckets
     self.batch_size = batch_size
     self.learning_rate = tf.Variable(float(learning_rate), trainable=False)
     self.learning_rate_decay_op = self.learning_rate.assign(
@@ -42,3 +41,7 @@ class NewSeq2SeqModel(object):
           return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
                                             self.target_vocab_size)
       softmax_loss_function = sampled_loss
+
+
+def foo():
+  print("Bar")
