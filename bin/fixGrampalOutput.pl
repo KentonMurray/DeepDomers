@@ -16,20 +16,19 @@ while(my $row = <STDIN>) {
 
     #fix mis-encoded chars
 
+    # Now in descrunge.py
     #Ãº -> é;
-    $row =~ s/Ãº/é/g;
-    #Ã³ -> é
-    $row =~ s/Ã³/é/g;
+    #$row =~ s/Ãº/é/g;
+    ##Ã³ -> é
+    #$row =~ s/Ã³/é/g;
     #Ã© -> é
-    $row =~ s/Ã©/é/g;
+    #$row =~ s/Ã©/é/g;
     #Ã¡ -> á
-    $row =~ s/Ã¡/á/g;
+    #$row =~ s/Ã¡/á/g;
     #Â¿ -> ¿
-    $row =~ s/Â¿/¿/g;
-
-    
+    #$row =~ s/Â¿/¿/g;
     #Ã ->
-    $row =~ s/Ã/É/g;
+    #$row =~ s/Ã/É/g;
 
     
     #look for </a>...    
