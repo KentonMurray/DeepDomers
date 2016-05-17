@@ -7,6 +7,7 @@ import random
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+from tensorflow.models.rnn import rnn_cell
 
 class NewSeq2SeqModel(object):
 
@@ -42,6 +43,8 @@ class NewSeq2SeqModel(object):
                                             self.target_vocab_size)
       softmax_loss_function = sampled_loss
 
+    # Currently only doing a basic RNN with one layer
+    cell = rnn_cell.BasicLSTMCell(size)
 
 def foo():
   print("Bar")
