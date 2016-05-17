@@ -54,8 +54,8 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
 tf.app.flags.DEFINE_integer("size", 1024, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 
-tf.app.flags.DEFINE_integer("src_vocab_size", 40000, "Source vocabulary size.")
-tf.app.flags.DEFINE_integer("tgt_vocab_size", 40000, "Target vocabulary size.")
+tf.app.flags.DEFINE_integer("en_vocab_size", 700, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("fr_vocab_size", 700, "French vocabulary size.")
 
 tf.app.flags.DEFINE_string("data_dir", "./", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "./", "Training directory.")
@@ -67,18 +67,6 @@ tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
-
-
-#need to come up with a better default path
-tf.app.flags.DEFINE_string("src_train", "./", "src training file.")
-tf.app.flags.DEFINE_string("tgt_train", "./", "tgt training file.")
-tf.app.flags.DEFINE_string("src_dev", "./", "src dev file.")
-tf.app.flags.DEFINE_string("tgt_dev", "./", "tgt dev file.")
-
-tf.app.flags.DEFINE_string("src_vocab_path", "./", "source vocab path.")
-tf.app.flags.DEFINE_string("tgt_vocab_path", "./", "target vocab path.")
-
-
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -128,7 +116,7 @@ def read_data(source_path, target_path, max_size=None):
 def create_model(session, forward_only):
   """Create translation model and initialize or load parameters in session."""
   model = seq2seq_model.Seq2SeqModel(
-      FLAGS.src_vocab_size, FLAGS.tgt_vocab_size, _buckets,
+      FLAGS.en_vocab_size, FLAGS.fr_vocab_size, _buckets,
       FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
       FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
       forward_only=forward_only)
@@ -142,12 +130,12 @@ def create_model(session, forward_only):
   return model
 
 
-def train(src_train, tgt_train, src_dev, tgt_dev):
-  """Train a src->tgt translation model using WMT data."""
+def train():
+  """Train a en->fr translation model using WMT data."""
   # Prepare WMT data.
-  #print("Preparing WMT data in %s" % FLAGS.data_dir)
-  #src_train, tgt_train, src_dev, tgt_dev, _, _ = data_utils.prepare_wmt_data(
-  #    FLAGS.data_dir, FLAGS.src_vocab_size, FLAGS.tgt_vocab_size)
+  print("Preparing WMT data in %s" % FLAGS.data_dir)
+  en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
+      FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
 
   with tf.Session() as sess:
     # Create model.
@@ -157,8 +145,8 @@ def train(src_train, tgt_train, src_dev, tgt_dev):
     # Read data into buckets and compute their sizes.
     print ("Reading development and training data (limit: %d)."
            % FLAGS.max_train_data_size)
-    dev_set = read_data(src_dev, tgt_dev)
-    train_set = read_data(src_train, tgt_train, FLAGS.max_train_data_size)
+    dev_set = read_data(en_dev, fr_dev)
+    train_set = read_data(en_train, fr_train, FLAGS.max_train_data_size)
     train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
     train_total_size = float(sum(train_bucket_sizes))
 
@@ -218,19 +206,19 @@ def train(src_train, tgt_train, src_dev, tgt_dev):
         sys.stdout.flush()
 
 
-def decode(src_vocab_path,  tgt_vocab_path):
+def decode():
   with tf.Session() as sess:
     # Create model and load parameters.
     model = create_model(sess, True)
     model.batch_size = 1  # We decode one sentence at a time.
 
     # Load vocabularies.
-    #src_vocab_path = os.path.join(FLAGS.data_dir,
-    #                             "vocab%d.src" % FLAGS.src_vocab_size)
-    #tgt_vocab_path = os.path.join(FLAGS.data_dir,
-    #                             "vocab%d.tgt" % FLAGS.tgt_vocab_size)
-    src_vocab, _ = data_utils.initialize_vocabulary(src_vocab_path)
-    _, rev_tgt_vocab = data_utils.initialize_vocabulary(tgt_vocab_path)
+    en_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.en" % FLAGS.en_vocab_size)
+    fr_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.fr" % FLAGS.fr_vocab_size)
+    en_vocab, _ = data_utils.initialize_vocabulary(en_vocab_path)
+    _, rev_fr_vocab = data_utils.initialize_vocabulary(fr_vocab_path)
 
     # Decode from standard input.
     sys.stdout.write("> ")
@@ -238,7 +226,7 @@ def decode(src_vocab_path,  tgt_vocab_path):
     sentence = sys.stdin.readline()
     while sentence:
       # Get token-ids for the input sentence.
-      token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), src_vocab)
+      token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), en_vocab)
       # Which bucket does it belong to?
       bucket_id = min([b for b in xrange(len(_buckets))
                        if _buckets[b][0] > len(token_ids)])
@@ -253,8 +241,8 @@ def decode(src_vocab_path,  tgt_vocab_path):
       # If there is an EOS symbol in outputs, cut them at that point.
       if data_utils.EOS_ID in outputs:
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-      # Print out Target sentence corresponding to outputs.
-      print(" ".join([tf.compat.as_str(rev_tgt_vocab[output]) for output in outputs]))
+      # Print out French sentence corresponding to outputs.
+      print(" ".join([tf.compat.as_str(rev_fr_vocab[output]) for output in outputs]))
       print("> ", end="")
       sys.stdout.flush()
       sentence = sys.stdin.readline()
@@ -284,9 +272,9 @@ def main(_):
   if FLAGS.self_test:
     self_test()
   elif FLAGS.decode:
-    decode(FLAGS.src_vocab_path,  FLAGS.tgt_vocab_path)
+    decode()
   else:
-    train(FlAGS.src_train, FLAGS.tgt_train, FLAGS.src_dev, FLAGS.tgt_dev)
+    train()
 
 if __name__ == "__main__":
   tf.app.run()
