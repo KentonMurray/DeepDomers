@@ -24,7 +24,7 @@ while(my $row = <STDIN>) {
     $row =~ s/Ã©/é/g;
 
     #Ã ->
-    $row =~ s/Ã/é/g;
+    $row =~ s/Ã/É/g;
 
     #Â¿ -> ¿
     $row =~ s/Â¿/¿/g;
