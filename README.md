@@ -13,7 +13,7 @@ Current neural MT methods rely on naïve word representations that make no use o
 - + attention
 - synthetic data? maybe spanish (without gender? + be able to add that back in
 - find spanish analyzer DONE
-- processing/cleaning/tokenization
+- processing/cleaning/tokenization (partial restart of harvest 11:30pm Mon...)
 - What to do about different beams for different types of generation
 - evaluation
 - morphemes --> surface form (do we have this for spanish?)
