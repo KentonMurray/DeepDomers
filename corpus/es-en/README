@@ -1,3 +1,5 @@
 Parallel Spanish-English training data from IWSLT2013
 
 152988 lines parallel, unprocessed (untokenized, etc, etc)
+
+Morphology-tagged Spanish corpus provided by GRAMPAL (http://cartago.lllf.uam.es/grampal/grampal.cgi)

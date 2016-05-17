@@ -1,0 +1,150 @@
+
+El	EL+ART+masc+sing
+ocÃ©ano	OCÃANO+N+masc+sing
+ser	SER+V+inf
+una	UN+Q+fem+sing
+cosa	COSA+N+fem+sing
+muy	MUY+Q
+complicada	COMPLICADO+ADJ+fem+sing
+.	.+PUNCT
+
+Y	Y+C
+podria	podria+V
+ser	SER+N+masc+sing
+una	UN+Q+fem+sing
+cosa	COSA+N+fem+sing
+muy	MUY+Q
+complicada	COMPLICAR+V+part
+lo que	LO QUE+P
+la	EL+ART+fem+sing
+salud	SALUD+N+fem+sing
+humana	HUMANO+ADJ+fem+sing
+es	SER+V+sing+3+pres_ind
+.	.+PUNCT
+
+Y	Y+C
+unirlas	UNIR+V+inf|LO+P+plu,3,fem
+,	,+PUNCT
+podrÃ­a	PODRIR+V+sing+impf_ind
+ser	SER+N+masc+sing
+una	UN+Q+fem+sing
+tarea	TAREA+N+fem+sing
+desalentadora	DESALENTADOR+ADJ+fem+sing
+.	.+PUNCT
+a	A+PREP
+tratar	TRATAR+V+inf
+de	DE+PREP
+decir	DECIR+V+inf
+es que	ES QUE+MD
+aÃºn	AÃN+ADV
+en	EN+PREP
+esa	ESE+DEM+fem+sing
+complejidad	COMPLEJIDAD+N+fem+sing
+,	,+PUNCT
+existen	EXISTIR+V+plu+3+pres_ind
+temas	TEMA+N+masc+plu
+sencillos	SENCILLO+ADJ+masc+plu
+que	QUE+C
+si	SI+C
+los	LO+P+masc+plu+3
+entendemos	ENTENDER+V+plu+1+pres_ind
+,	,+PUNCT
+continuar	CONTINUAR+V+inf
+.	.+PUNCT
+
+Esos	ESE+DEM+masc+plu
+temas	TEMA+N+masc+plu
+sencillos	SENCILLO+ADJ+masc+plu
+no	NO+ADV
+son	SER+V+plu+3+pres_ind
+realmente	REALMENTE+ADV
+temas	TEMER+V+sing+2+pres_subj
+acerca de	ACERCA DE+PREP
+la	EL+ART+fem+sing
+complejidad	COMPLEJIDAD+N+fem+sing
+de	DE+PREP
+lo que	LO QUE+P
+sucediendo	SUCEDER+V+ger
+,	,+PUNCT
+sino	SINO+C
+de	DE+PREP
+cosas	COSA+N+fem+plu
+que	QUE+C
+todos	TODO+Q+masc+plu
+sabemos	SABER+V+plu+1+pres_ind
+.	.+PUNCT
+
+Y	Y+C
+voy	IR+V+sing+1+pres_ind
+a	A+PREP
+comezar	comezar+N
+con	CON+PREP
+Ã©sta	ÃSTE+P+fem+sing+3
+.	.+PUNCT
+mamÃ¡	MAMÃ+N+fem+sing
+no	NO+ADV
+estÃ¡	ESTAR+V+sing
+contenta	CONTENTO+ADJ+fem+sing
+,	,+PUNCT
+nadie	NADIE+Q+sing
+lo	LO+P+masc+sing+3
+estÃ¡	ESTAR+V+sing
+.	.+PUNCT
+
+lo	LO+P+masc+sing+3
+sabemos	SABER+V+plu+1+pres_ind
+,	,+PUNCT
+Â¿	Â¿+NPR
+verdad ?	VERDAD ?+MD
+?	?+PUNCT
+Lo	Lo+NPR
+experimentado	EXPERIMENTAR+V+part
+.	.+PUNCT
+
+Si	SI+C
+partimos	PARTIR+V+plu+1
+de	DE+PREP
+esa	ESE+DEM+fem+sing
+nociÃ³n	NOCIÃN+N+fem+sing
+y	Y+C
+seguimos	SEGUIR+V+plu+1
+desde	DESDE+PREP
+ahÃ­	AHÃ+P
+,	,+PUNCT
+dar	DAR+V+inf
+el	EL+ART+masc+sing
+siguiente	SIGUIENTE+ADJ+sing
+paso	PASO+N+masc+sing
+,	,+PUNCT
+que	QUE+C
+es que	ES QUE+MD
+si	SI+C
+el	EL+ART+masc+sing
+ocÃ©ano	OCÃANO+N+masc+sing
+no	NO+ADV
+estÃ¡	ESTAR+V+sing
+contento	CONTENTO+ADJ+masc+sing
+,	,+PUNCT
+nadie	NADIE+Q+sing
+lo	LO+P+masc+sing+3
+estÃ¡	ESTAR+V+sing
+.	.+PUNCT
+
+Ese	ÃSE+P+masc+sing+3
+es	SER+V+sing+3+pres_ind
+el	EL+ART+masc+sing
+tema	TEMA+N+masc+sing
+de	DE+PREP
+mi	MI+POSS+sing
+charla	CHARLA+N+fem+sing
+.	.+PUNCT
+
+Y	Y+C
+haciendo	HACER+V+ger
+al	A+PREP|EL+ART+masc,sing
+ocÃ©ano	OCÃANO+N+masc+sing
+infeliz	INFELIZ+ADJ+sing
+de	DE+PREP
+diferentes	DIFERENTE+ADJ+plu
+formas	FORMA+N+fem+plu
+.	.+PUNCT

@@ -1,0 +1,258 @@
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:10 CEST 2016"> /tmp/EnArVGd2hQ </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:10 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="9" tokenes="9"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="ART" lem="EL" gen="masc" num="sing" multex="DETdms">El</w>
+<w cat="N" lem="OCÃANO" gen="masc" num="sing" multex="NCms">ocÃ©ano</w>
+<v lem="SER" ras="sing" asp="modal"><w cat="AUX" lem="PODER" num="sing" multex="">puede</w>
+<w cat="V" lem="SER" tie="inf" multex="Vinf">ser</w>
+</v>
+<w cat="Q" lem="UN" gen="fem" num="sing" multex="Q">una</w>
+<w cat="N" lem="COSA" gen="fem" num="sing" multex="NCfs">cosa</w>
+<w cat="Q" lem="MUY" multex="Q">muy</w>
+<w cat="ADJ" lem="COMPLICADO" gen="fem" num="sing" multex="ADJfs">complicada</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:10 CEST 2016"> /tmp/v849EIaoZz </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:10 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="13" tokenes="14"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="C" lem="Y" multex="C">Y</w>
+<w cat="V" multex="">podria</w>
+<w cat="N" lem="SER" gen="masc" num="sing" multex="NCms">ser</w>
+<w cat="Q" lem="UN" gen="fem" num="sing" multex="Q">una</w>
+<w cat="N" lem="COSA" gen="fem" num="sing" multex="NCfs">cosa</w>
+<w cat="Q" lem="MUY" multex="Q">muy</w>
+<w cat="V" lem="COMPLICAR" tie="part" multex="Vpar">complicada</w>
+<w cat="P" lem="LO QUE" multex="P">lo que</w>
+<w cat="ART" lem="EL" gen="fem" num="sing" multex="DETdfs">la</w>
+<w cat="N" lem="SALUD" gen="fem" num="sing" multex="NCfs">salud</w>
+<w cat="ADJ" lem="HUMANO" gen="fem" num="sing" multex="ADJfs">humana</w>
+<w cat="V" lem="SER" num="sing" per="3" tie="pres_ind" multex="Vindp3s">es</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:11 CEST 2016"> /tmp/UnokfFQEEI </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:11 CEST"/><texto_con pÃ¡rrafos="1" frases="2" palabras="33" tokenes="35"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="C" lem="Y" multex="C">Y</w>
+<c for="unirlas" pro="1">unirlas<w cat="V" lem="UNIR" ras="inf" for="unir" id="1-1-2"/><w cat="P" lem="LO" ras="plu,3,fem" for="las" id="1-1-3"/></c>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="V" lem="PODRIR" num="sing" tie="impf_ind" multex="">podrÃ­a</w>
+<w cat="N" lem="SER" gen="masc" num="sing" multex="NCms">ser</w>
+<w cat="Q" lem="UN" gen="fem" num="sing" multex="Q">una</w>
+<w cat="N" lem="TAREA" gen="fem" num="sing" multex="NCfs">tarea</w>
+<w cat="ADJ" lem="DESALENTADOR" gen="fem" num="sing" multex="ADJfs">desalentadora</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ <f id="1-2"><w cat="P" lem="LO QUE" multex="P">Lo que</w>
+<v lem="TRATAR" ras="sing,1,pres_ind" asp="futuro"><w cat="AUX" lem="IR" num="sing" per="1" tie="pres_ind" multex="AUXindp1s">voy</w>
+<w cat="PREP" lem="A" multex="PREP">a</w>
+<w cat="V" lem="TRATAR" tie="inf" multex="Vinf">tratar</w>
+</v>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="V" lem="DECIR" tie="inf" multex="Vinf">decir</w>
+<w cat="MD" lem="ES QUE" multex="MD">es que</w>
+<w cat="ADV" lem="AÃN" multex="ADV">aÃºn</w>
+<w cat="PREP" lem="EN" multex="PREP">en</w>
+<w cat="DEM" lem="ESE" gen="fem" num="sing" multex="DETdem">esa</w>
+<w cat="N" lem="COMPLEJIDAD" gen="fem" num="sing" multex="NCfs">complejidad</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="V" lem="EXISTIR" num="plu" per="3" tie="pres_ind" multex="Vindp3p">existen</w>
+<w cat="N" lem="TEMA" gen="masc" num="plu" multex="NCmp">temas</w>
+<w cat="ADJ" lem="SENCILLO" gen="masc" num="plu" multex="ADJmp">sencillos</w>
+<w cat="C" lem="QUE" multex="C">que</w>
+<w cat="C" lem="SI" multex="C">si</w>
+<w cat="P" lem="LO" gen="masc" num="plu" per="3" multex="PPER3p">los</w>
+<w cat="V" lem="ENTENDER" num="plu" per="1" tie="pres_ind" multex="Vindp1p">entendemos</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<v lem="CONTINUAR" ras="plu,1,pres_ind" asp="modal"><w cat="AUX" lem="PODER" num="plu" per="1" tie="pres_ind" multex="AUXindp1p">podemos</w>
+<w cat="V" lem="CONTINUAR" tie="inf" multex="Vinf">continuar</w>
+</v>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:11 CEST 2016"> /tmp/A0UmG92zpm </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:11 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="22" tokenes="24"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="DEM" lem="ESE" gen="masc" num="plu" multex="DETdem">Esos</w>
+<w cat="N" lem="TEMA" gen="masc" num="plu" multex="NCmp">temas</w>
+<w cat="ADJ" lem="SENCILLO" gen="masc" num="plu" multex="ADJmp">sencillos</w>
+<w cat="ADV" lem="NO" multex="ADV">no</w>
+<w cat="V" lem="SER" num="plu" per="3" tie="pres_ind" multex="Vindp3p">son</w>
+<w cat="ADV" lem="REALMENTE" multex="ADV">realmente</w>
+<w cat="V" lem="TEMER" num="sing" per="2" tie="pres_subj" multex="Vsubp2s">temas</w>
+<w cat="PREP" lem="ACERCA DE" multex="PREP">acerca de</w>
+<w cat="ART" lem="EL" gen="fem" num="sing" multex="DETdfs">la</w>
+<w cat="N" lem="COMPLEJIDAD" gen="fem" num="sing" multex="NCfs">complejidad</w>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="P" lem="LO QUE" multex="P">lo que</w>
+<v lem="SUCEDER" ras="sing" asp="progresivo"><w cat="AUX" lem="ESTAR" num="sing" multex="">estÃ¡</w>
+<w cat="V" lem="SUCEDER" tie="ger" multex="Vger">sucediendo</w>
+</v>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="C" lem="SINO" multex="C">sino</w>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="N" lem="COSA" gen="fem" num="plu" multex="NCfp">cosas</w>
+<w cat="C" lem="QUE" multex="C">que</w>
+<w cat="Q" lem="TODO" gen="masc" num="plu" multex="Q">todos</w>
+<w cat="V" lem="SABER" num="plu" per="1" tie="pres_ind" multex="Vindp1p">sabemos</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:12 CEST 2016"> /tmp/Q0VQuML40s </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:12 CEST"/><texto_con pÃ¡rrafos="1" frases="2" palabras="17" tokenes="17"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="C" lem="Y" multex="C">Y</w>
+<w cat="V" lem="IR" num="sing" per="1" tie="pres_ind" multex="Vindp1s">voy</w>
+<w cat="PREP" lem="A" multex="PREP">a</w>
+<w cat="N" multex="NCi">comezar</w>
+<w cat="PREP" lem="CON" multex="PREP">con</w>
+<w cat="P" lem="ÃSTE" gen="fem" num="sing" per="3" multex="PPER3s">Ã©sta</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ <f id="1-2"><w cat="C" lem="SI" multex="C">Si</w>
+<w cat="N" lem="MAMÃ" gen="fem" num="sing" multex="NCfs">mamÃ¡</w>
+<w cat="ADV" lem="NO" multex="ADV">no</w>
+<w cat="V" lem="ESTAR" num="sing" multex="">estÃ¡</w>
+<w cat="ADJ" lem="CONTENTO" gen="fem" num="sing" multex="ADJfs">contenta</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="Q" lem="NADIE" num="sing" multex="Q">nadie</w>
+<w cat="P" lem="LO" gen="masc" num="sing" per="3" multex="PPER3s">lo</w>
+<w cat="V" lem="ESTAR" num="sing" multex="">estÃ¡</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:12 CEST 2016"> /tmp/JPyp0aBboa </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:12 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="10" tokenes="11"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="P" lem="LO" gen="masc" num="sing" per="3" multex="PPER3s">lo</w>
+<w cat="V" lem="SABER" num="plu" per="1" tie="pres_ind" multex="Vindp1p">sabemos</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="NPR" lem="Â¿" multex="Npi">Â¿</w>
+<w cat="MD" lem="VERDAD ?" multex="MD">verdad ?</w>
+<w cat="PUNCT" lem="?" multex="">?</w>
+<w cat="NPR" lem="Lo" multex="Npi">Lo</w>
+<v lem="EXPERIMENTAR" ras="plu,1,pres_ind" asp="perfecto"><w cat="AUX" lem="HABER" num="plu" per="1" tie="pres_ind" multex="AUXindp1p">hemos</w>
+<w cat="V" lem="EXPERIMENTAR" tie="part" multex="Vpar">experimentado</w>
+</v>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:13 CEST 2016"> /tmp/yAidfoo5gE </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:13 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="29" tokenes="30"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="C" lem="SI" multex="C">Si</w>
+<w cat="V" lem="PARTIR" num="plu" per="1" multex="">partimos</w>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="DEM" lem="ESE" gen="fem" num="sing" multex="DETdem">esa</w>
+<w cat="N" lem="NOCIÃN" gen="fem" num="sing" multex="NCfs">nociÃ³n</w>
+<w cat="C" lem="Y" multex="C">y</w>
+<w cat="V" lem="SEGUIR" num="plu" per="1" multex="">seguimos</w>
+<w cat="PREP" lem="DESDE" multex="PREP">desde</w>
+<w cat="P" lem="AHÃ" multex="P">ahÃ­</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<v lem="DAR" ras="plu,1,pres_ind" asp="modal"><w cat="AUX" lem="PODER" num="plu" per="1" tie="pres_ind" multex="AUXindp1p">podemos</w>
+<w cat="V" lem="DAR" tie="inf" multex="Vinf">dar</w>
+</v>
+<w cat="ART" lem="EL" gen="masc" num="sing" multex="DETdms">el</w>
+<w cat="ADJ" lem="SIGUIENTE" num="sing" multex="ADJsig">siguiente</w>
+<w cat="N" lem="PASO" gen="masc" num="sing" multex="NCms">paso</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="C" lem="QUE" multex="C">que</w>
+<w cat="MD" lem="ES QUE" multex="MD">es que</w>
+<w cat="C" lem="SI" multex="C">si</w>
+<w cat="ART" lem="EL" gen="masc" num="sing" multex="DETdms">el</w>
+<w cat="N" lem="OCÃANO" gen="masc" num="sing" multex="NCms">ocÃ©ano</w>
+<w cat="ADV" lem="NO" multex="ADV">no</w>
+<w cat="V" lem="ESTAR" num="sing" multex="">estÃ¡</w>
+<w cat="ADJ" lem="CONTENTO" gen="masc" num="sing" multex="ADJms">contento</w>
+<w cat="PUNCT" lem="," multex="">,</w>
+<w cat="Q" lem="NADIE" num="sing" multex="Q">nadie</w>
+<w cat="P" lem="LO" gen="masc" num="sing" per="3" multex="PPER3s">lo</w>
+<w cat="V" lem="ESTAR" num="sing" multex="">estÃ¡</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:13 CEST 2016"> /tmp/cM52uWIFcu </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:13 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="8" tokenes="8"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="P" lem="ÃSE" gen="masc" num="sing" per="3" multex="PPER3s">Ese</w>
+<w cat="V" lem="SER" num="sing" per="3" tie="pres_ind" multex="Vindp3s">es</w>
+<w cat="ART" lem="EL" gen="masc" num="sing" multex="DETdms">el</w>
+<w cat="N" lem="TEMA" gen="masc" num="sing" multex="NCms">tema</w>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="POSS" lem="MI" num="sing" multex="DETposs">mi</w>
+<w cat="N" lem="CHARLA" gen="fem" num="sing" multex="NCfs">charla</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
+<texto>
+ <cabecera>
+ <de_archivo fecha="lun may 16 22:23:14 CEST 2016"> /tmp/ebAKRDcP66 </de_archivo>
+ <etiquetado_por programa="Grampal (c)" ordenador="cartago" fecha="lun 16 may 2016 22:23:14 CEST"/><texto_con pÃ¡rrafos="1" frases="1" palabras="11" tokenes="11"/></cabecera>
+ <contenido>
+ <p id="1">
+ <f id="1-1">
+<w cat="C" lem="Y" multex="C">Y</w>
+<v lem="HACER" ras="plu,1,pres_ind" asp="progresivo"><w cat="AUX" lem="ESTAR" num="plu" per="1" tie="pres_ind" multex="AUXindp1p">estamos</w>
+<w cat="V" lem="HACER" tie="ger" multex="Vger">haciendo</w>
+</v>
+<a for="al">al<w for="a" cat="PREP" lem="A" id="1-1-4"/><w for="el" cat="ART" lem="EL" ras="masc,sing" id="1-1-5"/></a>
+<w cat="N" lem="OCÃANO" gen="masc" num="sing" multex="NCms">ocÃ©ano</w>
+<w cat="ADJ" lem="INFELIZ" num="sing" multex="ADJsig">infeliz</w>
+<w cat="PREP" lem="DE" multex="PREP">de</w>
+<w cat="ADJ" lem="DIFERENTE" num="plu" multex="ADJpig">diferentes</w>
+<w cat="N" lem="FORMA" gen="fem" num="plu" multex="NCfp">formas</w>
+<w cat="PUNCT" lem="." multex="">.</w>
+</f>
+ </p>
+ </contenido>
+ </texto>
