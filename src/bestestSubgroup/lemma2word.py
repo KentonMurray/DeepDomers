@@ -42,6 +42,7 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import data_utils
+import lemma2word_data_utils as L2WDU
 import seq2seq_model
 
 
@@ -137,7 +138,8 @@ def train():
   # Prepare WMT data.
   print("Preparing lemma2word data in %s" % FLAGS.data_dir)
   #en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
-  data_utils.prepare_lemma2word_data(FLAGS.data_dir, FLAGS.src_vocab_size)
+  dataset_split, vocabs = L2WDU.prepare_data(FLAGS.data_dir, FLAGS.src_vocab_size)
+  asd
 
   with tf.Session() as sess:
     # Create model.

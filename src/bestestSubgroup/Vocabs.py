@@ -3,6 +3,16 @@ __author__ = 'tomerlevinboim'
 import codecs
 import data_utils
 
+_PAD = b"_PAD"
+_GO = b"_GO"
+_EOS = b"_EOS"
+_UNK = b"_UNK"
+
+_PAD_ID = 0
+_GO_ID = 1
+_EOS_ID = 2
+_UNK_ID = 3
+
 class Vocabs():
     pass
 

@@ -2,16 +2,7 @@
 import codecs
 import argparse
 import Vocabs
-
-_PAD = b"_PAD"
-_GO = b"_GO"
-_EOS = b"_EOS"
-_UNK = b"_UNK"
-
-_PAD_ID = 0
-_GO_ID = 1
-_EOS_ID = 2
-_UNK_ID = 3
+from Vocabs import _PAD, _GO, _EOS, _UNK
 
 
 def initVocab():
@@ -76,7 +67,7 @@ def create_vocabs(input_dir, input_filename, maxVocabSize, out_dir, output_basen
     for word, lemmas, features in yield_records(input_dir + input_filename):
         if word is None and lemmas is None and features is None:
             continue # skip record separator
-        
+
         add2Dict(wordCount, word)
         for lemma in lemmas:
             add2Dict(lemmaCount, lemma)
