@@ -1,0 +1,1 @@
+python translate.py --decode  --data_dir ./ --train_dir ./ --size=256 --num_layers=2 --en_vocab_size=1000 --fr_vocab_size=1000 --steps_per_checkpoint=50
