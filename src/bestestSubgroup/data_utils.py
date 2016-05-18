@@ -24,7 +24,6 @@ import re
 import tarfile
 
 from six.moves import urllib
-
 from tensorflow.python.platform import gfile
 
 # Special vocabulary symbols - we always put them at the start.
@@ -289,4 +288,5 @@ def prepare_wmt_data(train_path, dev_path, source_lang, target_lang, data_dir, e
   return (en_train_ids_path, fr_train_ids_path,
           en_dev_ids_path, fr_dev_ids_path,
           en_vocab_path, fr_vocab_path)
+
 

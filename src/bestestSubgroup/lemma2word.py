@@ -42,6 +42,7 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import data_utils
+import lemma2word_data_utils as L2WDU
 import seq2seq_model
 
 
@@ -57,6 +58,7 @@ tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 
 tf.app.flags.DEFINE_integer("en_vocab_size", 700, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("fr_vocab_size", 700, "French vocabulary size.")
+tf.app.flags.DEFINE_integer("src_vocab_size", 700, "source vocabulary size limit.")
 
 tf.app.flags.DEFINE_string("data_dir", "./", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "./", "Training directory.")
@@ -134,11 +136,11 @@ def create_model(session, forward_only):
 def train():
   """Train a en->fr translation model using WMT data."""
   # Prepare WMT data.
-  print("Preparing WMT data in %s" % FLAGS.data_dir)
-  en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
-      "./giga-fren.release2", "./newstest2013", "fr", "en", FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
-  en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
-#      "/home/hieu/workspace/github/DeepDomers/corpus/es-en/train.es-en", "/home/hieu/workspace/github/DeepDomers/corpus/es-en/#holdout", "es", "en", FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+  print("Preparing lemma2word data in %s" % FLAGS.data_dir)
+  #en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+  dataset_split, vocabs = L2WDU.prepare_data(FLAGS.data_dir, FLAGS.src_vocab_size)
+  # WE CAN LOAD THE ANNOTATED SPANISH DATA !    
+  # TODO: CHANGE THE MODEL TO READ (LEMMA, [FEATURES]) SEQUENCES AND PREDICT THE WORDS
 
   with tf.Session() as sess:
     # Create model.

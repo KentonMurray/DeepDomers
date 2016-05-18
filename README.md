@@ -19,3 +19,9 @@ Current neural MT methods rely on naïve word representations that make no use o
 - What to do about different beams for different types of generation
 - evaluation
 - morphemes --> surface form (do we have this for spanish?)
+
+#experiments
+- Train word-level eng-esp
+- Train char-level eng-esp
+- Train spanish tokens -> spanish words
+- modify? model so that these are all there
