@@ -135,7 +135,9 @@ def train():
   # Prepare WMT data.
   print("Preparing WMT data in %s" % FLAGS.data_dir)
   en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
-      FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+      "./giga-fren.release2", "./newstest2013", "fr", "en", FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+  en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
+#      "/home/hieu/workspace/github/DeepDomers/corpus/es-en/train.es-en", "/home/hieu/workspace/github/DeepDomers/corpus/es-en/#holdout", "es", "en", FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
 
   with tf.Session() as sess:
     # Create model.
