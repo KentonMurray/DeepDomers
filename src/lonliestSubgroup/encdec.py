@@ -62,11 +62,13 @@ sess = tf.Session()
 source_word_emb = tf.Variable(tf.random_normal([len(source_vocab), embedding_dim], stddev=1.0 / math.sqrt(len(source_vocab))))
 target_word_emb = tf.Variable(tf.random_normal([len(target_vocab), embedding_dim], stddev=1.0 / math.sqrt(len(target_vocab))))
 
-W = tf.Variable(tf.random_normal([hidden_dim, len(target_vocab)], stddev=1.0 / math.sqrt(len(target_vocab) + hidden_dim)))
-b = tf.Variable(tf.zeros([len(target_vocab)]))
+final_W = tf.Variable(tf.random_normal([hidden_dim, len(target_vocab)], stddev=1.0 / math.sqrt(len(target_vocab) + hidden_dim)))
+final_b = tf.Variable(tf.zeros([len(target_vocab)]))
 
-lstm = tf.nn.rnn_cell.BasicLSTMCell(hidden_dim)
-encoder = tf.nn.rnn_cell.MultiRNNCell([lstm] * lstm_layer_count)
+encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+encoder = tf.nn.rnn_cell.MultiRNNCell(encoder_cells * lstm_layer_count)
+decoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+decoder = tf.nn.rnn_cell.MultiRNNCell(decoder_cells * lstm_layer_count)
 batch_size = tf.placeholder(tf.int32, shape=[])
 initial_state = encoder.zero_state(batch_size, tf.float32)
 
@@ -79,9 +81,13 @@ with tf.variable_scope('encoder'):
   input_embs = tf.nn.embedding_lookup(source_word_emb, encoder_inputs)
   outputs, state = rnn.dynamic_rnn(encoder, input_embs, initial_state = initial_state, sequence_length=source_lengths)
 
+transform_W = tf.Variable(tf.random_normal([hidden_dim, decoder.state_size]))
+transform_b = tf.Variable(tf.zeros([decoder.state_size]))
+decoder_initial_state = tf.matmul(outputs[:,max_length - 1,:], transform_W) + transform_b
+
 with tf.variable_scope('decoder'):
   input_embs = tf.nn.embedding_lookup(target_word_emb, decoder_inputs)
-  outputs2, states2 = rnn.dynamic_rnn(encoder, input_embs, initial_state = state, sequence_length=target_lengths)
+  outputs2, states2 = rnn.dynamic_rnn(decoder, input_embs, initial_state = decoder_initial_state, sequence_length=target_lengths)
 
 # First we gather the last hidden state of the encoder (where we input </s>)
 # and all but the last hidden state of the decoder (everything but the </s>)
@@ -90,12 +96,12 @@ relevant_outputs1 = tf.split(1, max_length, outputs)
 relevant_outputs2 = tf.split(1, max_length, outputs2)
 relevant_outputs = tf.concat(1, [relevant_outputs1[-1]] + relevant_outputs2[:-1])
 
-# We want to multiply this tensor by W, which is (hidden_dim, target_vocab_size).
+# We want to multiply this tensor by final_W, which is (hidden_dim, target_vocab_size).
 # This is equivalent to doing a matrix multiply (?*max_length, hidden_dim) times (hidden_dim, target_vocab_size)
 # Since TF doesn't let us do tensor-matrix products, we use this transformation as a hackaround.
 relevant_outputs_t = tf.transpose(relevant_outputs, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
 relevant_outputs_tr = tf.reshape(relevant_outputs_t, [-1, hidden_dim]) # (max_length * ?, hidden_dim)
-relevant_dists = tf.matmul(relevant_outputs_tr, W) + b # (max_length * ?, target_vocab_size)
+relevant_dists = tf.matmul(relevant_outputs_tr, final_W) + final_b # (max_length * ?, target_vocab_size)
 
 # The distributions are now in one big matrix. We could reshape it, back to a 3-tensor, but
 # instead we just reshape the references from a (?, max_length) matrix into a (? * max_length) vector
