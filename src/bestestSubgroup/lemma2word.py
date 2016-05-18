@@ -139,7 +139,8 @@ def train():
   print("Preparing lemma2word data in %s" % FLAGS.data_dir)
   #en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
   dataset_split, vocabs = L2WDU.prepare_data(FLAGS.data_dir, FLAGS.src_vocab_size)
-  asd
+  # WE CAN LOAD THE ANNOTATED SPANISH DATA !    
+  # TODO: CHANGE THE MODEL TO READ (LEMMA, [FEATURES]) SEQUENCES AND PREDICT THE WORDS
 
   with tf.Session() as sess:
     # Create model.
