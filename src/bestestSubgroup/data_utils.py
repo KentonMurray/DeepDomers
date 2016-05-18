@@ -25,6 +25,7 @@ import tarfile
 
 from six.moves import urllib
 import WordLemmaHelper
+from collections import namedtuple
 
 from tensorflow.python.platform import gfile
 
@@ -294,6 +295,7 @@ def prepare_wmt_data(data_dir, en_vocabulary_size, fr_vocabulary_size, tokenizer
           en_vocab_path, fr_vocab_path)
 
 
+DatasetSplit = namedtuple('Dataset', ['train', 'dev', 'test'])
 def prepare_lemma2word_data(data_dir, max_vocab_size, tokenizer=None):
   """Get WMT data into data_dir, create vocabularies and tokenize data.
 
@@ -316,12 +318,13 @@ def prepare_lemma2word_data(data_dir, max_vocab_size, tokenizer=None):
 
   data_dir = '../../corpus/es-en'
   # the lemma2word files contain both the "source" (lemmas, POS, features) and the target (words) data.
-  train_path = data_dir + "/small.train.tok.morph.es.parse"
-  dev_path = data_dir + "/small.dev.tok.morph.es.parse"
-  test_path = data_dir + "/small.test.tok.morph.es.parse"
+  train_path =  "/small.train.tok.morph.es.parse"
+  dev_path = "/small.dev.tok.morph.es.parse"
+  test_path = "/small.test.tok.morph.es.parse"
 
-  WordLemmaHelper.createVocabs(train_path, max_vocab_size, data_dir, train_path)
-  asd
+  WordLemmaHelper.create_vocabs(data_dir, train_path, max_vocab_size, data_dir, train_path)
+  vocabs = WordLemmaHelper.read_vocabs(data_dir, train_path)
+
 
   # Create token ids for the training data.
   fr_train_ids_path = train_path + (".ids%d.fr" % fr_vocabulary_size)
@@ -329,12 +332,11 @@ def prepare_lemma2word_data(data_dir, max_vocab_size, tokenizer=None):
   data_to_token_ids(train_path + ".fr", fr_train_ids_path, fr_vocab_path, tokenizer)
   data_to_token_ids(train_path + ".en", en_train_ids_path, en_vocab_path, tokenizer)
 
-  # Create token ids for the development data.
-  fr_dev_ids_path = dev_path + (".ids%d.fr" % fr_vocabulary_size)
-  en_dev_ids_path = dev_path + (".ids%d.en" % en_vocabulary_size)
-  data_to_token_ids(dev_path + ".fr", fr_dev_ids_path, fr_vocab_path, tokenizer)
-  data_to_token_ids(dev_path + ".en", en_dev_ids_path, en_vocab_path, tokenizer)
+  train = get_parallel_lemma2word(data_dir, train_path, vocabs)
+  dev   = get_parallel_lemma2word(data_dir, dev_path, vocabs)
+  test  = get_parallel_lemma2word(data_dir, test_path, vocabs)
 
-  return (en_train_ids_path, fr_train_ids_path,
-          en_dev_ids_path, fr_dev_ids_path,
-          en_vocab_path, fr_vocab_path)
+  return DatasetSplit(train, dev, test), vocabs
+
+def get_parallel_lemma2word(data_dir, train_path, vocabs):
+    pass
