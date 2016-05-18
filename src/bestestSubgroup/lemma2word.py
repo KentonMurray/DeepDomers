@@ -57,6 +57,7 @@ tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 
 tf.app.flags.DEFINE_integer("en_vocab_size", 700, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("fr_vocab_size", 700, "French vocabulary size.")
+tf.app.flags.DEFINE_integer("src_vocab_size", 700, "source vocabulary size limit.")
 
 tf.app.flags.DEFINE_string("data_dir", "./", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "./", "Training directory.")
@@ -134,9 +135,9 @@ def create_model(session, forward_only):
 def train():
   """Train a en->fr translation model using WMT data."""
   # Prepare WMT data.
-  print("Preparing WMT data in %s" % FLAGS.data_dir)
-  en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(
-      FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+  print("Preparing lemma2word data in %s" % FLAGS.data_dir)
+  #en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
+  data_utils.prepare_lemma2word_data(FLAGS.data_dir, FLAGS.src_vocab_size)
 
   with tf.Session() as sess:
     # Create model.
