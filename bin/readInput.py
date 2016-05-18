@@ -43,7 +43,7 @@ def createVocabs(f, maxVocabSize, outdir):
 	featVocab = initVocab()
 	charVocab = initVocab()
 	
-
+        cnt = 0
 	with codecs.open(f,'r','utf-8') as inf:
 		lines = inf.readlines()
 
@@ -53,7 +53,9 @@ def createVocabs(f, maxVocabSize, outdir):
 	charCount = {}
 	for line in lines:
 		line = line.strip()
+                cnt += 1
 		if len(line)>0:
+                        print u"{}: {}".format(cnt,line)
 			word, lemmas, features = read(line)
 
 			add2Dict(wordCount, word)
