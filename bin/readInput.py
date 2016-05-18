@@ -93,8 +93,6 @@ def createVocabs(f, maxVocabSize, outdir):
         outf.write(c + "\n")
     outf.close()
 
-    return
-
 
 def main():
     parser = argparse.ArgumentParser(description='Read input file and create lookups')
