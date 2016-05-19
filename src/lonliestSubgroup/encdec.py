@@ -65,41 +65,44 @@ target_word_emb = tf.Variable(tf.random_normal([len(target_vocab), embedding_dim
 final_W = tf.Variable(tf.random_normal([hidden_dim, len(target_vocab)], stddev=1.0 / math.sqrt(len(target_vocab) + hidden_dim)))
 final_b = tf.Variable(tf.zeros([len(target_vocab)]))
 
-encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
-encoder = tf.nn.rnn_cell.MultiRNNCell(encoder_cells * lstm_layer_count)
+fwd_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+rev_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+fwd_encoder = tf.nn.rnn_cell.MultiRNNCell(fwd_encoder_cells * lstm_layer_count)
+rev_encoder = tf.nn.rnn_cell.MultiRNNCell(rev_encoder_cells * lstm_layer_count)
 decoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
 decoder = tf.nn.rnn_cell.MultiRNNCell(decoder_cells * lstm_layer_count)
 batch_size = tf.placeholder(tf.int32, shape=[])
-initial_state = encoder.zero_state(batch_size, tf.float32)
+fwd_initial_state = fwd_encoder.zero_state(batch_size, tf.float32)
+rev_initial_state = rev_encoder.zero_state(batch_size, tf.float32)
 
 encoder_inputs = tf.placeholder(tf.int32, shape=[None, max_length])
 decoder_inputs = tf.placeholder(tf.int32, shape=[None, max_length])
 source_lengths = tf.placeholder(tf.int32, shape=[None])
 target_lengths = tf.placeholder(tf.int32, shape=[None])
 
-with tf.variable_scope('encoder'):
-  input_embs = tf.nn.embedding_lookup(source_word_emb, encoder_inputs)
-  outputs, state = rnn.dynamic_rnn(encoder, input_embs, initial_state = initial_state, sequence_length=source_lengths)
+with tf.variable_scope('fwd_encoder'):
+  input_embs = tf.nn.embedding_lookup(source_word_emb, encoder_inputs) # (?, max_length, embedding_dim)
+  fwd_outputs, state = rnn.dynamic_rnn(fwd_encoder, input_embs, initial_state = fwd_initial_state, sequence_length=source_lengths)
+with tf.variable_scope('rev_encoder'):
+  input_embs = tf.reverse(input_embs, [False, True, False]) 
+  rev_outputs_reversed, state = rnn.dynamic_rnn(rev_encoder, input_embs, initial_state = rev_initial_state, sequence_length=source_lengths)
+  rev_outputs = tf.reverse(rev_outputs_reversed, [False, True, False])
 
-transform_W = tf.Variable(tf.random_normal([hidden_dim, decoder.state_size]))
+outputs = tf.concat(2, [fwd_outputs, rev_outputs])
+
+transform_W = tf.Variable(tf.random_normal([2 * hidden_dim, decoder.state_size]))
 transform_b = tf.Variable(tf.zeros([decoder.state_size]))
-decoder_initial_state = tf.matmul(outputs[:,max_length - 1,:], transform_W) + transform_b
+context = tf.concat(1, [fwd_outputs[:, max_length - 1, :], rev_outputs[:, 0, :]])
+decoder_initial_state = tf.matmul(context, transform_W) + transform_b
 
 with tf.variable_scope('decoder'):
   input_embs = tf.nn.embedding_lookup(target_word_emb, decoder_inputs)
   outputs2, states2 = rnn.dynamic_rnn(decoder, input_embs, initial_state = decoder_initial_state, sequence_length=target_lengths)
 
-# First we gather the last hidden state of the encoder (where we input </s>)
-# and all but the last hidden state of the decoder (everything but the </s>)
-# and gather all of them into a (?, max_length, hidden_dim) tensor
-relevant_outputs1 = tf.split(1, max_length, outputs)
-relevant_outputs2 = tf.split(1, max_length, outputs2)
-relevant_outputs = tf.concat(1, [relevant_outputs1[-1]] + relevant_outputs2[:-1])
-
 # We want to multiply this tensor by final_W, which is (hidden_dim, target_vocab_size).
 # This is equivalent to doing a matrix multiply (?*max_length, hidden_dim) times (hidden_dim, target_vocab_size)
 # Since TF doesn't let us do tensor-matrix products, we use this transformation as a hackaround.
-relevant_outputs_t = tf.transpose(relevant_outputs, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
+relevant_outputs_t = tf.transpose(outputs2, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
 relevant_outputs_tr = tf.reshape(relevant_outputs_t, [-1, hidden_dim]) # (max_length * ?, hidden_dim)
 relevant_dists = tf.matmul(relevant_outputs_tr, final_W) + final_b # (max_length * ?, target_vocab_size)
 
