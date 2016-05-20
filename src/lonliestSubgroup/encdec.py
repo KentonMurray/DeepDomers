@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import math
 import argparse
@@ -47,6 +49,7 @@ target_vocab.Convert('<pad>')
 source_corpus = ReadCorpus(args.source_filename, source_vocab)
 target_corpus = ReadCorpus(args.target_filename, target_vocab)
 # We could pad the whole corpus here, rather than doing it over and over
+#print("source_corpus=%s target_corpus=%s" % (len(source_corpus), len(target_corpus)) )
 assert len(source_corpus) == len(target_corpus)
 print >>sys.stderr, 'Vocab sizes: %d/%d' % (len(source_vocab), len(target_vocab))
 
