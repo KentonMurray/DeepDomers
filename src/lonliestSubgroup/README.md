@@ -1,4 +1,4 @@
-List of TensorFlow tips and Tricks
+List of TensorFlow Tips and Tricks
 ==================================
 
 Tensor-matrix (or tensor-tensor) multiplication
