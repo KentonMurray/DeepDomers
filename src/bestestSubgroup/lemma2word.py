@@ -53,15 +53,15 @@ tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                           "Clip gradients to this norm.")
 tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("size", 1024, "Size of each model layer.")
-tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
+tf.app.flags.DEFINE_integer("size", 28, "Size of each model layer.")
+tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 
 tf.app.flags.DEFINE_integer("en_vocab_size", 700, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("fr_vocab_size", 700, "French vocabulary size.")
 tf.app.flags.DEFINE_integer("src_vocab_size", 700, "source vocabulary size limit.")
 
 tf.app.flags.DEFINE_string("data_dir", "./", "Data directory")
-tf.app.flags.DEFINE_string("train_dir", "./", "Training directory.")
+tf.app.flags.DEFINE_string("train_dir", "./lemma2word_models", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
@@ -78,48 +78,65 @@ FLAGS = tf.app.flags.FLAGS
 _buckets = [(5, 10), (10, 15), (20, 25), (40, 50)]
 
 
-def read_data(source_path, target_path, max_size=None):
-  """Read data from source and target files and put into buckets.
+# def read_data(source_path, target_path, max_size=None):
+#   """Read data from source and target files and put into buckets.
+#
+#   Args:
+#     source_path: path to the files with token-ids for the source language.
+#     target_path: path to the file with token-ids for the target language;
+#       it must be aligned with the source file: n-th line contains the desired
+#       output for n-th line from the source_path.
+#     max_size: maximum number of lines to read, all other will be ignored;
+#       if 0 or None, data files will be read completely (no limit).
+#
+#   Returns:
+#     data_set: a list of length len(_buckets); data_set[n] contains a list of
+#       (source, target) pairs read from the provided data files that fit
+#       into the n-th bucket, i.e., such that len(source) < _buckets[n][0] and
+#       len(target) < _buckets[n][1]; source and target are lists of token-ids.
+#   """
+#   data_set = [[] for _ in _buckets]
+#   with tf.gfile.GFile(source_path, mode="r") as source_file:
+#     with tf.gfile.GFile(target_path, mode="r") as target_file:
+#       source, target = source_file.readline(), target_file.readline()
+#       counter = 0
+#       while source and target and (not max_size or counter < max_size):
+#         counter += 1
+#         if counter % 100000 == 0:
+#           print("  reading data line %d" % counter)
+#           sys.stdout.flush()
+#         source_ids = [int(x) for x in source.split()]
+#         target_ids = [int(x) for x in target.split()]
+#         target_ids.append(data_utils.EOS_ID)
+#         for bucket_id, (source_size, target_size) in enumerate(_buckets):
+#           if len(source_ids) < source_size and len(target_ids) < target_size:
+#             data_set[bucket_id].append([source_ids, target_ids])
+#             break
+#         source, target = source_file.readline(), target_file.readline()
+#   return data_set
 
-  Args:
-    source_path: path to the files with token-ids for the source language.
-    target_path: path to the file with token-ids for the target language;
-      it must be aligned with the source file: n-th line contains the desired
-      output for n-th line from the source_path.
-    max_size: maximum number of lines to read, all other will be ignored;
-      if 0 or None, data files will be read completely (no limit).
 
-  Returns:
-    data_set: a list of length len(_buckets); data_set[n] contains a list of
-      (source, target) pairs read from the provided data files that fit
-      into the n-th bucket, i.e., such that len(source) < _buckets[n][0] and
-      len(target) < _buckets[n][1]; source and target are lists of token-ids.
-  """
+def bucket_split(data):
   data_set = [[] for _ in _buckets]
-  with tf.gfile.GFile(source_path, mode="r") as source_file:
-    with tf.gfile.GFile(target_path, mode="r") as target_file:
-      source, target = source_file.readline(), target_file.readline()
-      counter = 0
-      while source and target and (not max_size or counter < max_size):
-        counter += 1
-        if counter % 100000 == 0:
-          print("  reading data line %d" % counter)
-          sys.stdout.flush()
-        source_ids = [int(x) for x in source.split()]
-        target_ids = [int(x) for x in target.split()]
-        target_ids.append(data_utils.EOS_ID)
-        for bucket_id, (source_size, target_size) in enumerate(_buckets):
+  N = len(data.source_ids)
+  assert N == len(data.target_ids)
+  for n in xrange(N):
+      #source_ids = data.source_ids[n]
+      source_ids =[(lemma[0], features[0][0]) for lemma, features in data.source_ids[n]]
+      target_ids = data.target_ids[n]
+      for bucket_id, (source_size, target_size) in enumerate(_buckets):
           if len(source_ids) < source_size and len(target_ids) < target_size:
             data_set[bucket_id].append([source_ids, target_ids])
             break
-        source, target = source_file.readline(), target_file.readline()
+
   return data_set
 
-
-def create_model(session, forward_only):
+def create_model(session, vocabs, forward_only):
   """Create translation model and initialize or load parameters in session."""
+  target_vocab_size = len(vocabs.words)
+  source_vocab_sizes = (len(vocabs.lemmas), len(vocabs.features))
   model = seq2seq_model.Seq2SeqModel(
-      FLAGS.en_vocab_size, FLAGS.fr_vocab_size, _buckets,
+      source_vocab_sizes, target_vocab_size, _buckets,
       FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
       FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
       forward_only=forward_only)
@@ -136,23 +153,25 @@ def create_model(session, forward_only):
 def train():
   """Train a en->fr translation model using WMT data."""
   # Prepare WMT data.
-  print("Preparing lemma2word data in %s" % FLAGS.data_dir)
+  print("Preparing lemma2word data")# in %s" % FLAGS.data_dir)
   #en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_wmt_data(FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
   dataset_split, vocabs = L2WDU.prepare_data(FLAGS.data_dir, FLAGS.src_vocab_size)
-  # WE CAN LOAD THE ANNOTATED SPANISH DATA !    
+  # WE CAN LOAD THE ANNOTATED SPANISH DATA !
   # TODO: CHANGE THE MODEL TO READ (LEMMA, [FEATURES]) SEQUENCES AND PREDICT THE WORDS
 
   with tf.Session() as sess:
+    # split data to buckets
+    print("Splitting data to buckets")
+    ids_split = L2WDU.Struct()
+    ids_split.train = bucket_split(dataset_split.train)
+    ids_split.dev = bucket_split(dataset_split.dev)
+    ids_split.test = bucket_split(dataset_split.test)
+
     # Create model.
     print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
-    model = create_model(sess, False)
+    model = create_model(sess, vocabs, False)
 
-    # Read data into buckets and compute their sizes.
-    print ("Reading development and training data (limit: %d)."
-           % FLAGS.max_train_data_size)
-    dev_set = read_data(en_dev, fr_dev)
-    train_set = read_data(en_train, fr_train, FLAGS.max_train_data_size)
-    train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
+    train_bucket_sizes = [len(ids_split.train[b]) for b in xrange(len(_buckets))]
     train_total_size = float(sum(train_bucket_sizes))
 
     # A bucket scale is a list of increasing numbers from 0 to 1 that we'll use
@@ -174,8 +193,7 @@ def train():
 
       # Get a batch and make a step.
       start_time = time.time()
-      encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-          train_set, bucket_id)
+      encoder_inputs, decoder_inputs, target_weights = model.get_batch(train_set, bucket_id)
       _, step_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
                                    target_weights, bucket_id, False)
       step_time += (time.time() - start_time) / FLAGS.steps_per_checkpoint

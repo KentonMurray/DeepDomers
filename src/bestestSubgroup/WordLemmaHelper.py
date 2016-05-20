@@ -77,7 +77,7 @@ def create_vocabs(input_dir, input_filename, maxVocabSize, out_dir, output_basen
         for c in word:
             add2Dict(charCount, c)
 
-    print len(wordCount), len(lemmaCount), len(charCount), len(featCount)
+    print "Created vocabularies: |word|=%d, |lemma|=%d |character|=%d, |feature|=%d" % (len(wordCount), len(lemmaCount), len(charCount), len(featCount))
 
     wordVocab += sorted(wordCount, key=wordCount.get, reverse=True)
     lemmaVocab += sorted(lemmaCount, key=lemmaCount.get, reverse=True)
