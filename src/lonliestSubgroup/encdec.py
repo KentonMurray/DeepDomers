@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import math
 import argparse
@@ -49,14 +47,13 @@ target_vocab.Convert('<pad>')
 source_corpus = ReadCorpus(args.source_filename, source_vocab)
 target_corpus = ReadCorpus(args.target_filename, target_vocab)
 # We could pad the whole corpus here, rather than doing it over and over
-#print("source_corpus=%s target_corpus=%s" % (len(source_corpus), len(target_corpus)) )
 assert len(source_corpus) == len(target_corpus)
 print >>sys.stderr, 'Vocab sizes: %d/%d' % (len(source_vocab), len(target_vocab))
 
-minibatch_size = 4
-embedding_dim = 3
+minibatch_size = 1
+embedding_dim = 7
 hidden_dim = 13
-alignment_hidden_dim = 17
+alignment_hidden_dim = 4
 lstm_layer_count = 1
 max_length = max(len(sent) for sent in source_corpus + target_corpus)
 print >>sys.stderr, 'Max length is', max_length
@@ -136,7 +133,7 @@ for t, input_emb in enumerate(tf.unpack(input_embs_t)):
   context = tf.reduce_sum(IA, 0) # [?, 2H]
 
   prev_word_and_context = tf.concat(1, [tf.reshape(prev_word, [-1, embedding_dim]), context]) 
-
+ 
   output, state = decoder(prev_word_and_context, state) # Output should be (?, H)
   outputs2l.append(output)
   prev_word = input_emb
@@ -154,16 +151,18 @@ output_dists = tf.matmul(decoder_outputs_tr, final_W) + final_b # (max_length * 
 # and compute the loss with that.
 decoder_inputs_r = tf.reshape(decoder_inputs, [-1])
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(output_dists, decoder_inputs_r)
-average_xent = tf.reduce_mean(cross_entropy)
+total_xent = tf.reduce_sum(cross_entropy)
 
-#optimizer = tf.train.GradientDescentOptimizer()
-optimizer = tf.train.AdamOptimizer(1.0)
-train_step = optimizer.minimize(average_xent)
+#optimizer = tf.train.GradientDescentOptimizer(0.1)
+optimizer = tf.train.AdamOptimizer()
+train_step = optimizer.minimize(total_xent)
 sess.run(tf.initialize_all_variables())
 
 total_target_words = sum(len(sent) for sent in target_corpus)
 for i in range(100000):
+  report_loss = 0.0
   total_loss = 0.0
+  report_target_words = 0
   for j in range(0, len(source_corpus), minibatch_size):
     source_inputs = []
     target_inputs = []
@@ -182,6 +181,13 @@ for i in range(100000):
     feed_dict[target_lengths.name] = np.array(tgt_lengths)
     feed_dict[encoder_inputs.name] = np.array(source_inputs)
     feed_dict[decoder_inputs.name] = np.array(target_inputs)
-    output, loss = sess.run([train_step, average_xent], feed_dict=feed_dict)
+
+    output, loss = sess.run([train_step, total_xent], feed_dict=feed_dict)
     total_loss += loss
-  print 'Perplexity:', math.exp(total_loss / total_target_words)
+    report_loss += loss
+    report_target_words += sum(tgt_lengths)
+    if (report_target_words - sum(tgt_lengths)) // 1000 != report_target_words // 1000:
+      print >>sys.stderr, 'Parital perp:', math.exp(report_loss / report_target_words)
+      report_target_words = 0
+      report_loss = 0.0
+  print 'Perplexity:', math.exp(total_loss / total_target_words), '(%f loss over %d words)' % (total_loss, total_target_words)
