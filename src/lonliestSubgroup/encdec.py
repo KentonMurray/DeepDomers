@@ -37,6 +37,113 @@ def ReadCorpus(filename, vocab):
 def pad(sentence, vocab, length):
   return sentence + max(0, length - len(sentence)) * [vocab.Convert('<pad>')]
 
+def init_random_normal(dims):
+  stddev = 1.0 / math.sqrt(sum(dims))
+  return tf.random_normal(dims, stddev=stddev)
+
+class EncoderModel:
+  def __init__(self, max_length, hidden_dim, lstm_layer_count, batch_size, source_vocab_size, embedding_dim):
+    self.source_word_emb = tf.Variable(init_random_normal([source_vocab_size, embedding_dim]))
+
+    self.fwd_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+    self.rev_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+    self.fwd_encoder = tf.nn.rnn_cell.MultiRNNCell(self.fwd_encoder_cells * lstm_layer_count)
+    self.rev_encoder = tf.nn.rnn_cell.MultiRNNCell(self.rev_encoder_cells * lstm_layer_count)
+    self.fwd_initial_state = self.fwd_encoder.zero_state(batch_size, tf.float32)
+    self.rev_initial_state = self.rev_encoder.zero_state(batch_size, tf.float32)
+
+  def embed_source(self, source_sentence, source_word_embeddings):
+    return tf.nn.embedding_lookup(source_word_embeddings, source_sentence)
+
+  def build_annotations(self, encoder_inputs, source_lengths):
+    input_embs = self.embed_source(encoder_inputs, self.source_word_emb)
+    input_embs_list = tf.unpack(tf.transpose(input_embs, perm=[1, 0, 2]))
+    annotations, fwd_state, rev_state = rnn.bidirectional_rnn(self.fwd_encoder, self.rev_encoder, \
+      input_embs_list, self.fwd_initial_state, self.rev_initial_state, sequence_length=source_lengths)
+    annotation_matrix = tf.pack(annotations) # (max_length, ?, 2*hidden_dim)
+    return annotation_matrix, fwd_state, rev_state
+
+class DecoderModel:
+  def __init__(self, embedding_dim, target_vocab_size, hidden_dim, lstm_layer_count):
+    # Word Embeddings
+    self.bos_word_emb = tf.Variable(init_random_normal([embedding_dim])) # Used when generating target output
+    self.target_word_emb = tf.Variable(init_random_normal([len(target_vocab), embedding_dim]))
+
+    self.decoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
+    self.decoder = tf.nn.rnn_cell.MultiRNNCell(self.decoder_cells * lstm_layer_count)
+
+    # Used to transform the reverse encoder's LSTM state into the decoder's initial state
+    self.transform_W = tf.Variable(init_random_normal([self.decoder.state_size, 2 * hidden_dim]))
+    self.transform_b = tf.Variable(tf.zeros([self.decoder.state_size]))
+
+    # Used to transform the output of the decoder LSTM into a distribution over target vocabulary
+    self.final_W = tf.Variable(init_random_normal([hidden_dim, target_vocab_size]))
+    self.final_b = tf.Variable(tf.zeros([target_vocab_size]))
+
+    self.hidden_dim = hidden_dim
+    self.target_vocab_size = target_vocab_size
+
+  def create_initial_state(self, rev_state):
+    return tf.matmul(rev_state, self.transform_W) + self.transform_b
+
+  def add_input(self, input_tensor, state):
+    return self.decoder(input_tensor, state)
+
+  def embed(self, decoder_inputs):
+    return tf.nn.embedding_lookup(self.target_word_emb, decoder_inputs)
+
+  def compute_output_distributions(self, decoder_outputs):
+    # We want to multiply this tensor by final_W, which is (hidden_dim, target_vocab_size).
+    # This is equivalent to doing a matrix multiply (?*max_length, hidden_dim) times (hidden_dim, target_vocab_size)
+    # Since TF doesn't let us do tensor-matrix products, we use this transformation as a hackaround.
+    decoder_outputs_t = tf.transpose(decoder_outputs, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
+    decoder_outputs_tr = tf.reshape(decoder_outputs_t, [-1, self.hidden_dim]) # (max_length * ?, hidden_dim)
+    output_dists = tf.matmul(decoder_outputs_tr, self.final_W) + self.final_b # (max_length * ?, target_vocab_size)
+    return tf.reshape(output_dists, [max_length, -1, self.target_vocab_size])
+
+  @property
+  def state_size(self):
+    return self.decoder.state_size
+
+class AttentionModel:
+  def __init__(self, alignment_hidden_dim, hidden_dim, output_state_size, max_length):
+    # Used to compute alignment/attention
+    self.alignment_U = tf.Variable(tf.random_normal([alignment_hidden_dim, 1]))
+    self.alignment_W = tf.Variable(tf.random_normal([2 * hidden_dim, alignment_hidden_dim]))
+    self.alignment_V = tf.Variable(tf.random_normal([decoder.state_size, alignment_hidden_dim]))
+    self.alignment_b = tf.Variable(tf.zeros([alignment_hidden_dim]))
+
+    self.alignment_hidden_dim = alignment_hidden_dim
+    self.hidden_dim = hidden_dim
+    self.output_state_size = output_state_size
+    self.max_length = max_length
+
+  def compute_attention(self, output_state, annotation_matrix):
+    # The attention vector A should have dimensions (?, max_length)
+    # and is generated from the annotation matrix I (max_length, ?, 2*hidden_dim) => (max_length * ?, 2*hidden_dim)
+    # and the output state S (?, hidden_dim).
+    # We want A = UH, H = tanh(WI + VS + b)
+    # Where H is (?, max_length, alignment_hidden_dim)
+
+    # \Alpha is the normalized version of A: \Alpha = softmax(A)
+    annotation_matrix_r = tf.reshape(annotation_matrix, [-1, 2 * self.hidden_dim]) # (?*max_length, 2*hidden_dim)
+    bias_term = tf.matmul(output_state, self.alignment_V) + self.alignment_b # [?, alignment_hidden_dim], will be broadcast to [S, ?, alignment_hidden_dim]
+    IW = tf.matmul(annotation_matrix_r, self.alignment_W)
+    IW_r = tf.reshape(IW, [self.max_length, -1, self.alignment_hidden_dim])
+    alignment_hidden = tf.nn.tanh(IW_r + bias_term) # [S, ?, alignment_hidden_dim]
+    H_r = tf.reshape(alignment_hidden, [-1, self.alignment_hidden_dim])
+    alignment = tf.matmul(H_r, self.alignment_U)
+    attention = tf.nn.softmax(alignment) # [S * ?, 1]
+    attention_r = tf.reshape(attention, [self.max_length, -1, 1]) # [S, ?, 1]
+    return attention_r
+
+  def compute_context(self, annotation_matrix, attention):
+    # We essentially want I^T * A, but the batch sizes get in the way.
+    # We solve this by changing the dot product into two steps:
+    # an element-wise product, and a summation.
+    IA = tf.mul(annotation_matrix, attention)
+    return tf.reduce_sum(IA, 0) # [?, 2H]
+
 parser = argparse.ArgumentParser()
 parser.add_argument('source_filename')
 parser.add_argument('target_filename')
@@ -68,75 +175,16 @@ source_lengths = tf.placeholder(tf.int32, shape=[None])
 target_lengths = tf.placeholder(tf.int32, shape=[None])
 batch_size = tf.placeholder(tf.int32, shape=[])
 
-fwd_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
-rev_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
-fwd_encoder = tf.nn.rnn_cell.MultiRNNCell(fwd_encoder_cells * lstm_layer_count)
-rev_encoder = tf.nn.rnn_cell.MultiRNNCell(rev_encoder_cells * lstm_layer_count)
-decoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
-decoder = tf.nn.rnn_cell.MultiRNNCell(decoder_cells * lstm_layer_count)
-fwd_initial_state = fwd_encoder.zero_state(batch_size, tf.float32)
-rev_initial_state = rev_encoder.zero_state(batch_size, tf.float32)
+encoder = EncoderModel(max_length, hidden_dim, lstm_layer_count, batch_size, len(source_vocab), embedding_dim)
+decoder = DecoderModel(embedding_dim, len(target_vocab), hidden_dim, lstm_layer_count)
+attention_model = AttentionModel(alignment_hidden_dim, hidden_dim, decoder.state_size, max_length)
 
-# Word Embeddings
-bos_word_emb = tf.Variable(tf.random_normal([embedding_dim])) # Used when generating target output
-source_word_emb = tf.Variable(tf.random_normal([len(source_vocab), embedding_dim], stddev=1.0 / math.sqrt(len(source_vocab))))
-target_word_emb = tf.Variable(tf.random_normal([len(target_vocab), embedding_dim], stddev=1.0 / math.sqrt(len(target_vocab))))
+annotation_matrix, fwd_state, rev_state = encoder.build_annotations(encoder_inputs, source_lengths)
 
-# Used to transform the reverse encoder's LSTM state into the decoder's initial state
-transform_W = tf.Variable(tf.random_normal([decoder.state_size, 2 * hidden_dim]))
-transform_b = tf.Variable(tf.zeros([decoder.state_size]))
+state = decoder.create_initial_state(rev_state)
+prev_word = tf.reshape(tf.tile(tf.expand_dims(decoder.bos_word_emb, 0), tf.pack([batch_size, 1])), [-1, embedding_dim])
 
-# Used to compute alignment/attention
-alignment_U = tf.Variable(tf.random_normal([alignment_hidden_dim, 1]))
-alignment_W = tf.Variable(tf.random_normal([2 * hidden_dim, alignment_hidden_dim]))
-alignment_V = tf.Variable(tf.random_normal([decoder.state_size, alignment_hidden_dim]))
-alignment_b = tf.Variable(tf.zeros([alignment_hidden_dim]))
-
-# Used to transform the output of the decoder LSTM into a distribution over target vocabulary
-final_W = tf.Variable(tf.random_normal([hidden_dim, len(target_vocab)], stddev=1.0 / math.sqrt(len(target_vocab) + hidden_dim)))
-final_b = tf.Variable(tf.zeros([len(target_vocab)]))
-
-def embed_source(source_sentence, source_word_embeddings):
-  return tf.nn.embedding_lookup(source_word_embeddings, source_sentence)
-
-input_embs = embed_source(encoder_inputs, source_word_emb)
-input_embs_list = tf.unpack(tf.transpose(input_embs, perm=[1, 0, 2]))
-annotations, fwd_state, rev_state = rnn.bidirectional_rnn(fwd_encoder, rev_encoder, input_embs_list, fwd_initial_state, rev_initial_state, sequence_length=source_lengths)
-decoder_initial_state = tf.matmul(rev_state, transform_W) + transform_b
-
-state = decoder_initial_state
-prev_word = tf.reshape(tf.tile(tf.expand_dims(bos_word_emb, 0), tf.pack([batch_size, 1])), [-1, embedding_dim])
-annotation_matrix = tf.pack(annotations) # (max_length, ?, 2*hidden_dim)
-
-# annotation_matrix, hidden_dim, state, alignment_V, alignment_b, alignment_W
-# max_length, alignment_hidden_dim alignment_U
-def compute_attention(output_state, annotation_matrix, alignment_U, alignment_V, alignment_W, alignment_b, hidden_dim, alignment_hidden_dim, max_length):
-  # The attention vector A should have dimensions (?, max_length)
-  # and is generated from the annotation matrix I (max_length, ?, 2*hidden_dim) => (max_length * ?, 2*hidden_dim)
-  # and the output state S (?, hidden_dim).
-  # We want A = UH, H = tanh(WI + VS + b)
-  # Where H is (?, max_length, alignment_hidden_dim)
-
-  # \Alpha is the normalized version of A: \Alpha = softmax(A)
-  annotation_matrix_r = tf.reshape(annotation_matrix, [-1, 2 * hidden_dim]) # (?*max_length, 2*hidden_dim)
-  bias_term = tf.matmul(state, alignment_V) + alignment_b # [?, alignment_hidden_dim], will be broadcast to [S, ?, alignment_hidden_dim]
-  IW = tf.matmul(annotation_matrix_r, alignment_W)
-  IW_r = tf.reshape(IW, [max_length, -1, alignment_hidden_dim])
-  alignment_hidden = tf.nn.tanh(IW_r + bias_term) # [S, ?, alignment_hidden_dim]
-  H_r = tf.reshape(alignment_hidden, [-1, alignment_hidden_dim])
-  alignment = tf.matmul(H_r, alignment_U)
-  attention = tf.nn.softmax(alignment) # [S * ?, 1]
-  attention_r = tf.reshape(attention, [max_length, -1, 1]) # [S, ?, 1]
-  return attention_r
-
-def compute_context(annotation_matrix, attention):
-  # We essentially want I^T * A, but the batch sizes get in the way.
-  # We solve this by changing the dot product into two steps:
-  # an element-wise product, and a summation.
-  IA = tf.mul(annotation_matrix, attention)
-  return tf.reduce_sum(IA, 0) # [?, 2H]
-
-decoder_input_embs = tf.nn.embedding_lookup(target_word_emb, decoder_inputs)
+decoder_input_embs = decoder.embed(decoder_inputs)
 # This is basically just an unrolled version of dynamic_rnn, which gives us access to te
 # states and outputs one at a time, so we can compute attention and whatnot.
 input_embs_t = tf.transpose(decoder_input_embs, perm=[1, 0, 2])
@@ -145,28 +193,23 @@ for t, input_emb in enumerate(tf.unpack(input_embs_t)):
   if t > 0:
     tf.get_variable_scope().reuse_variables()
 
-  attention = compute_attention(state, annotation_matrix, alignment_U, alignment_V, alignment_W, alignment_b, hidden_dim, alignment_hidden_dim, max_length)
-  context = compute_context(annotation_matrix, attention)
+  attention = attention_model.compute_attention(state, annotation_matrix)
+  context = attention_model.compute_context(annotation_matrix, attention)
 
   prev_word_and_context = tf.concat(1, [tf.reshape(prev_word, [-1, embedding_dim]), context]) 
  
-  output, state = decoder(prev_word_and_context, state) # Output should be (?, H)
+  output, state = decoder.add_input(prev_word_and_context, state) # Output should be (?, H)
   outputs.append(output)
   prev_word = input_emb
+
 decoder_outputs = tf.transpose(tf.pack(outputs), perm=[1, 0, 2]) # (?, T, H)
+output_dists = decoder.compute_output_distributions(decoder_outputs)
 
-# We want to multiply this tensor by final_W, which is (hidden_dim, target_vocab_size).
-# This is equivalent to doing a matrix multiply (?*max_length, hidden_dim) times (hidden_dim, target_vocab_size)
-# Since TF doesn't let us do tensor-matrix products, we use this transformation as a hackaround.
-decoder_outputs_t = tf.transpose(decoder_outputs, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
-decoder_outputs_tr = tf.reshape(decoder_outputs_t, [-1, hidden_dim]) # (max_length * ?, hidden_dim)
-output_dists = tf.matmul(decoder_outputs_tr, final_W) + final_b # (max_length * ?, target_vocab_size)
-
-# The distributions are now in one big matrix. We could reshape it, back to a 3-tensor, but
-# instead we just reshape the references from a (?, max_length) matrix into a (? * max_length) vector
-# and compute the loss with that.
+# We reshape both the output distributions and the references to be (max_length*?) dimensional
+# and compute the loss in that space
+output_dists_r = tf.reshape(output_dists, [-1, len(target_vocab)])
 decoder_inputs_r = tf.reshape(decoder_inputs, [-1])
-cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(output_dists, decoder_inputs_r)
+cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(output_dists_r, decoder_inputs_r)
 total_xent = tf.reduce_sum(cross_entropy)
 
 #optimizer = tf.train.GradientDescentOptimizer(0.1)
