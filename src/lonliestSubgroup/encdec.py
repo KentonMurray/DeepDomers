@@ -4,9 +4,8 @@ import argparse
 import tensorflow as tf
 import tensorflow.models.rnn.rnn as rnn
 import numpy as np
+from collections import namedtuple
 from itertools import izip
-
-tf.set_random_seed(1)
 
 class Vocabulary:
   def __init__(self):
@@ -34,6 +33,27 @@ def ReadCorpus(filename, vocab):
       corpus.append(words)
   return corpus
 
+Token = namedtuple('Token', 'word, morphemes, chars')
+def ReadMorphCorpus(filename, word_vocab, morpheme_vocab, char_vocab):
+  corpus = []
+  current_sentence = []
+  with open(filename) as f:
+    for line in f:
+      if not line.strip():
+        assert len(current_sentence) > 0
+        corpus.append(current_sentence)
+        del current_sentence[:]
+      else:
+        word, analyses = line.decode('utf-8').strip().split('\t', 1)
+        token_word = word_vocab.Convert(word)
+        token_chars = [char_vocab.Convert(c) for c in word]
+        token_morphemes = []
+        for analysis in analyses.split('\t'):
+          token_morphemes.append([morpheme_vocab.Convert(m) for m in analysis.split('+')])
+        current_sentence.append(Token(token_word, token_morphemes, token_chars))
+  assert len(current_sentence) == 0
+  return corpus
+
 def pad(sentence, vocab, length):
   return sentence + max(0, length - len(sentence)) * [vocab.Convert('<pad>')]
 
@@ -41,9 +61,16 @@ def init_random_normal(dims):
   stddev = 1.0 / math.sqrt(sum(dims))
   return tf.random_normal(dims, stddev=stddev)
 
+class WordEmbedder:
+  def __init__(self, vocab_size, embedding_dim):
+    self.embedding_matrix = tf.Variable(init_random_normal([vocab_size, embedding_dim]))
+
+  def embed(self, sentence):
+    return tf.nn.embedding_lookup(self.embedding_matrix, sentence)
+
 class EncoderModel:
   def __init__(self, max_length, hidden_dim, lstm_layer_count, batch_size, source_vocab_size, embedding_dim):
-    self.source_word_emb = tf.Variable(init_random_normal([source_vocab_size, embedding_dim]))
+    self.word_embedder = WordEmbedder(source_vocab_size, embedding_dim)
 
     self.fwd_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
     self.rev_encoder_cells = [tf.nn.rnn_cell.BasicLSTMCell(hidden_dim) for i in range(lstm_layer_count)]
@@ -53,10 +80,10 @@ class EncoderModel:
     self.rev_initial_state = self.rev_encoder.zero_state(batch_size, tf.float32)
 
   def embed_source(self, source_sentence, source_word_embeddings):
-    return tf.nn.embedding_lookup(source_word_embeddings, source_sentence)
+    return self.word_embedder.embed(source_sentence)
 
   def build_annotations(self, encoder_inputs, source_lengths):
-    input_embs = self.embed_source(encoder_inputs, self.source_word_emb)
+    input_embs = self.word_embedder.embed(encoder_inputs)
     input_embs_list = tf.unpack(tf.transpose(input_embs, perm=[1, 0, 2]))
     annotations, fwd_state, rev_state = rnn.bidirectional_rnn(self.fwd_encoder, self.rev_encoder, \
       input_embs_list, self.fwd_initial_state, self.rev_initial_state, sequence_length=source_lengths)
@@ -64,7 +91,7 @@ class EncoderModel:
     return annotation_matrix, fwd_state, rev_state
 
 class DecoderModel:
-  def __init__(self, embedding_dim, target_vocab_size, hidden_dim, lstm_layer_count):
+  def __init__(self, embedding_dim, target_vocab_size, hidden_dim, lstm_layer_count, max_length):
     # Word Embeddings
     self.bos_word_emb = tf.Variable(init_random_normal([embedding_dim])) # Used when generating target output
     self.target_word_emb = tf.Variable(init_random_normal([len(target_vocab), embedding_dim]))
@@ -82,6 +109,7 @@ class DecoderModel:
 
     self.hidden_dim = hidden_dim
     self.target_vocab_size = target_vocab_size
+    self.max_length = max_length
 
   def create_initial_state(self, rev_state):
     return tf.matmul(rev_state, self.transform_W) + self.transform_b
@@ -99,7 +127,7 @@ class DecoderModel:
     decoder_outputs_t = tf.transpose(decoder_outputs, perm=[1, 0, 2]) # (max_length, ?, hidden_dim)
     decoder_outputs_tr = tf.reshape(decoder_outputs_t, [-1, self.hidden_dim]) # (max_length * ?, hidden_dim)
     output_dists = tf.matmul(decoder_outputs_tr, self.final_W) + self.final_b # (max_length * ?, target_vocab_size)
-    return tf.reshape(output_dists, [max_length, -1, self.target_vocab_size])
+    return tf.reshape(output_dists, [self.max_length, -1, self.target_vocab_size])
 
   @property
   def state_size(self):
@@ -147,7 +175,16 @@ class AttentionModel:
 parser = argparse.ArgumentParser()
 parser.add_argument('source_filename')
 parser.add_argument('target_filename')
+parser.add_argument('--morph', required=False)
 args = parser.parse_args()
+
+tf.set_random_seed(1)
+if args.morph:
+  word_vocab = Vocabulary()
+  morph_vocab = Vocabulary()
+  char_vocab = Vocabulary()
+  ReadMorphCorpus(sys.argv[1], word_vocab, morph_vocab, char_vocab)
+  sys.exit(1)
 
 source_vocab = Vocabulary()
 target_vocab = Vocabulary()
@@ -164,20 +201,21 @@ embedding_dim = 7
 hidden_dim = 13
 alignment_hidden_dim = 4
 lstm_layer_count = 1
-max_length = max(len(sent) for sent in source_corpus + target_corpus)
-print >>sys.stderr, 'Max length is', max_length
+max_source_length = max(len(sent) for sent in source_corpus)
+max_target_length = max(len(sent) for sent in target_corpus)
+print >>sys.stderr, 'Max lengths: %d/%d' % (max_source_length, max_target_length)
 
 sess = tf.Session()
 
-encoder_inputs = tf.placeholder(tf.int32, shape=[None, max_length])
-decoder_inputs = tf.placeholder(tf.int32, shape=[None, max_length])
+encoder_inputs = tf.placeholder(tf.int32, shape=[None, max_source_length])
+decoder_inputs = tf.placeholder(tf.int32, shape=[None, max_target_length])
 source_lengths = tf.placeholder(tf.int32, shape=[None])
 target_lengths = tf.placeholder(tf.int32, shape=[None])
 batch_size = tf.placeholder(tf.int32, shape=[])
 
-encoder = EncoderModel(max_length, hidden_dim, lstm_layer_count, batch_size, len(source_vocab), embedding_dim)
-decoder = DecoderModel(embedding_dim, len(target_vocab), hidden_dim, lstm_layer_count)
-attention_model = AttentionModel(alignment_hidden_dim, hidden_dim, decoder.state_size, max_length)
+encoder = EncoderModel(max_source_length, hidden_dim, lstm_layer_count, batch_size, len(source_vocab), embedding_dim)
+decoder = DecoderModel(embedding_dim, len(target_vocab), hidden_dim, lstm_layer_count, max_target_length)
+attention_model = AttentionModel(alignment_hidden_dim, hidden_dim, decoder.state_size, max_source_length)
 
 annotation_matrix, fwd_state, rev_state = encoder.build_annotations(encoder_inputs, source_lengths)
 
@@ -217,26 +255,26 @@ optimizer = tf.train.AdamOptimizer()
 train_step = optimizer.minimize(total_xent)
 sess.run(tf.initialize_all_variables())
 
-total_target_words = sum(len(sent) for sent in target_corpus)
-for i in range(100000):
-  report_loss = 0.0
-  total_loss = 0.0
-  report_target_words = 0
-  for j in range(0, len(source_corpus), minibatch_size):
+def construct_feed_dict(source_batch, target_batch):
+    global source_vocab
+    global target_vocab
+    global max_source_length
+    global max_target_length
+
     source_inputs = []
     target_inputs = []
     src_lengths = []
     tgt_lengths = []
-    J = min(j + minibatch_size, len(source_corpus))
-    N = max(len(source_corpus[k]) for k in range(j, J))
-    M = max(len(target_corpus[k]) for k in range(j, J))
-    for k in range(j, J):
-      padded_source = pad(source_corpus[k], source_vocab, max_length)
-      padded_target = pad(target_corpus[k], target_vocab, max_length)
+    N = max(len(sentence) for sentence in source_batch)
+    M = max(len(sentence) for sentence in target_batch)
+    for source_sentence, target_sentence in izip(source_batch, target_batch):
+      padded_source = pad(source_sentence, source_vocab, max_source_length)
+      padded_target = pad(target_sentence, target_vocab, max_target_length)
       source_inputs.append(padded_source)
       target_inputs.append(padded_target)
-      src_lengths.append(len(source_corpus[k]))
-      tgt_lengths.append(len(target_corpus[k]))
+      src_lengths.append(len(source_sentence))
+      tgt_lengths.append(len(target_sentence))
+
     feed_dict = {}
     feed_dict[batch_size.name] = len(source_inputs)
     feed_dict[source_lengths.name] = np.array(src_lengths)
@@ -244,11 +282,22 @@ for i in range(100000):
     feed_dict[encoder_inputs.name] = np.array(source_inputs)
     feed_dict[decoder_inputs.name] = np.array(target_inputs) 
 
+    return feed_dict
+
+total_target_words = sum(len(sent) for sent in target_corpus)
+for i in range(100000):
+  report_loss = 0.0
+  total_loss = 0.0
+  report_target_words = 0
+  for j in range(0, len(source_corpus), minibatch_size):
+    J = min(j + minibatch_size, len(source_corpus))
+    feed_dict = construct_feed_dict(source_corpus[j:J], target_corpus[j:J])
+    target_words = sum(len(sentence) for sentence in target_corpus[j:J])
     output, loss = sess.run([train_step, total_xent], feed_dict=feed_dict)
     total_loss += loss
     report_loss += loss
-    report_target_words += sum(tgt_lengths)
-    if (report_target_words - sum(tgt_lengths)) // 1000 != report_target_words // 1000:
+    report_target_words += target_words
+    if (report_target_words - target_words) // 1000 != report_target_words // 1000:
       print >>sys.stderr, 'Parital perp:', math.exp(report_loss / report_target_words)
       report_target_words = 0
       report_loss = 0.0
